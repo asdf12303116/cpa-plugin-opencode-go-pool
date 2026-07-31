@@ -39,7 +39,7 @@ button:hover { background: color-mix(in srgb, CanvasText 8%, transparent); }
   <span class="muted" id="meta"></span>
   <div id="error"></div>
 </div>
-<div class="card"><div id="content" class="muted">Enter the management key and press Load.</div></div>
+<div class="card"><div id="content" class="muted">Enter the management key and press Load, or wait for it to load from CPA Manager Plus.</div></div>
 <script>
 const BASE = '/v0/management/plugins/opencode-go-pool';
 const keyInput = document.getElementById('key');
@@ -49,6 +49,35 @@ function headers() {
   const h = { 'Content-Type': 'application/json' };
   if (value) h['Autho' + 'rization'] = 'Bearer ' + value;
   return h;
+}
+function deobfuscatePayload(payload) {
+  const prefix = 'enc::v1::';
+  if (!payload || !payload.startsWith(prefix)) return payload;
+  const binary = atob(payload.slice(prefix.length));
+  const key = 'cli-proxy-api-webui::secure-storage|' + location.host + '|' + navigator.userAgent;
+  const keyBytes = new TextEncoder().encode(key);
+  const bytes = new Uint8Array(binary.length);
+  for (let i = 0; i < binary.length; i++) bytes[i] = binary.charCodeAt(i) ^ keyBytes.charCodeAt(i % keyBytes.length);
+  return new TextDecoder().decode(bytes);
+}
+function readStoredKey() {
+  let stored = null;
+  try { stored = sessionStorage.getItem('ocgp-key'); } catch (_) {}
+  if (stored) return { key: stored, source: 'session' };
+  try {
+    const raw = localStorage.getItem('cli-proxy-auth');
+    if (raw) {
+      const state = JSON.parse(deobfuscatePayload(raw));
+      if (state && typeof state.managementKey === 'string' && state.managementKey) {
+        return { key: state.managementKey, source: 'cpamp' };
+      }
+    }
+  } catch (_) {}
+  try {
+    const legacy = localStorage.getItem('managementKey');
+    if (legacy) return { key: legacy, source: 'cpamp' };
+  } catch (_) {}
+  return null;
 }
 function fmtTime(iso) { return iso ? new Date(iso).toLocaleString() : ''; }
 function pct(value) {
@@ -143,7 +172,16 @@ document.getElementById('refresh').addEventListener('click', async () => {
   catch (err) { document.getElementById('error').textContent = String(err); }
 });
 keyInput.addEventListener('keydown', e => { if (e.key === 'Enter') load(); });
-if (keyInput.value) load();
+if (keyInput.value) {
+  load();
+} else {
+  const stored = readStoredKey();
+  if (stored && stored.source === 'cpamp') {
+    keyInput.value = stored.key;
+    document.getElementById('meta').textContent = 'management key loaded from CPA Manager Plus';
+    load();
+  }
+}
 </script>
 </body>
 </html>`

@@ -16,6 +16,7 @@ func main() {
 	entryName := flag.String("entry", "", "dynamic library name inside the zip")
 	archivePath := flag.String("archive", "", "path to the output zip archive")
 	checksumPath := flag.String("checksum", "", "path to the output checksum file")
+	appendChecksum := flag.Bool("append", false, "append the checksum line instead of overwriting the file")
 	flag.Parse()
 
 	if *libraryPath == "" || *entryName == "" || *archivePath == "" || *checksumPath == "" {
@@ -30,8 +31,21 @@ func main() {
 	}
 	checksum := sha256.Sum256(archiveData)
 	line := fmt.Sprintf("%s  %s\n", hex.EncodeToString(checksum[:]), filepath.Base(*archivePath))
-	if errWrite := os.WriteFile(*checksumPath, []byte(line), 0o644); errWrite != nil {
+	flags := os.O_WRONLY | os.O_CREATE
+	if *appendChecksum {
+		flags |= os.O_APPEND
+	} else {
+		flags |= os.O_TRUNC
+	}
+	checksumFile, errOpen := os.OpenFile(*checksumPath, flags, 0o644)
+	if errOpen != nil {
+		fatalf("open checksum file: %v", errOpen)
+	}
+	if _, errWrite := checksumFile.WriteString(line); errWrite != nil {
 		fatalf("write checksum: %v", errWrite)
+	}
+	if errClose := checksumFile.Close(); errClose != nil {
+		fatalf("close checksum file: %v", errClose)
 	}
 }
 

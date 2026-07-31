@@ -29,7 +29,7 @@ automatically and keeps their health state synchronized.
 ## Requirements
 
 - CLIProxyAPI v7.2.67 or a compatible release with the C ABI plugin system
-- Linux amd64 with glibc 2.36 or newer for the default build target
+- Linux amd64 or arm64 with glibc 2.36 or newer
 - Go 1.26 with CGO enabled and a local C compiler toolchain
 - `save-cooldown-status: true` in CPA for reliable persisted cooldown signals
 
@@ -52,14 +52,15 @@ plugins:
   enabled: true
   dir: plugins
   store-sources:
-    - https://raw.githubusercontent.com/hrz6976/cpa-plugin-opencode-go-pool/main/registry.json
+    - https://raw.githubusercontent.com/asdf12303116/cpa-plugin-opencode-go-pool/main/registry.json
 ```
 
 Reload or restart CPA, open **CPA Manager Plus → Plugin Store**, refresh the
 store, and install **OpenCode Go Pool**. The installer verifies the release
-checksum and writes the versioned library under `plugins/linux/amd64/`.
+checksum and writes the versioned library under `plugins/linux/amd64/` or
+`plugins/linux/arm64/` matching the host architecture.
 
-The published package currently supports Linux amd64 with glibc 2.36 or newer.
+Published packages cover Linux amd64 and arm64 with glibc 2.36 or newer.
 Installing the plugin does not create OpenCode credentials; complete the
 [configuration](#configuration) section below before enabling production
 traffic.
@@ -71,14 +72,17 @@ Build the shared library:
 ```sh
 make test
 make build VERSION=0.2.0
+make build VERSION=0.2.0 GOARCH=arm64 CC=aarch64-linux-gnu-gcc  # arm64 cross build
 make package VERSION=0.2.0  # produce the CPA plugin-store zip + checksums
+make package VERSION=0.2.0 ARCHS="amd64 arm64"  # produce both architecture zips
 ```
 
 Copy `dist/opencode-go-pool-v0.2.0.so` into CPA's
 `plugins/linux/amd64/` directory and mount that directory at
-`/CLIProxyAPI/plugins` in the CPA container. The plugin ID is derived from the
-filename by removing the version suffix, so the example above registers as
-`opencode-go-pool`.
+`/CLIProxyAPI/plugins` in the CPA container (use
+`dist/opencode-go-pool-v0.2.0-arm64.so` and `plugins/linux/arm64/` on arm64).
+The plugin ID is derived from the filename by removing the version suffix, so
+the example above registers as `opencode-go-pool`.
 
 For a local stack with a container named `cli-proxy-api`, this shortcut builds,
 copies, and restarts CPA:
@@ -134,6 +138,13 @@ Open the CPA plugin page at:
 ```text
 /v0/resource/plugins/opencode-go-pool/status
 ```
+
+When the page is served on the same origin as **CPA Manager Plus** (the
+typical manager-proxied deployment), the plugin page reads the management key
+automatically from the manager's `localStorage` — no manual entry needed. The
+key must be persisted by CPA Manager Plus, which happens when "remember
+password" is enabled at login. If the key is not available (different origin,
+or not persisted), the page falls back to the manual management key field.
 
 Each account can be configured with its OpenCode workspace ID and dashboard
 `auth` cookie. The cookie is more sensitive than an API key:
@@ -201,10 +212,11 @@ make clean
 ```
 
 `make test` runs `go vet ./...` and `go test ./...`. `make package` creates
-`opencode-go-pool_<version>_linux_amd64.zip` and `checksums.txt` in `dist/`
-using the exact CPA plugin-store layout. CI additionally checks formatting and
-builds the C ABI shared library. Pushing a `v<version>` tag publishes the
-installer artifacts as a GitHub Release.
+`opencode-go-pool_<version>_linux_<arch>.zip` (amd64 by default; pass
+`ARCHS="amd64 arm64"` for both) and `checksums.txt` in `dist/` using the exact
+CPA plugin-store layout. CI additionally checks formatting and builds the C
+ABI shared library for amd64 and arm64. Pushing a `v<version>` tag publishes
+the installer artifacts as a GitHub Release.
 
 ## Known limitations
 

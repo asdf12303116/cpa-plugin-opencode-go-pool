@@ -1,26 +1,36 @@
 VERSION ?= 0.2.0
 GO ?= go
+GOARCH ?= amd64
+ARCHS ?= $(GOARCH)
 PLUGIN_ID = opencode-go-pool
-OUT = dist/opencode-go-pool-v$(VERSION).so
-ARCHIVE = dist/$(PLUGIN_ID)_$(VERSION)_linux_amd64.zip
-ARCHIVE_CHECKSUM = $(ARCHIVE).sha256
-DEPLOY_DIR ?= ../../plugins/linux/amd64
+# Keep the historical amd64 output name so existing manual flows still work.
+LIB_SUFFIX = $(if $(filter arm64,$(GOARCH)),-$(GOARCH),)
+OUT = dist/opencode-go-pool-v$(VERSION)$(LIB_SUFFIX).so
+ARCHIVE = dist/$(PLUGIN_ID)_$(VERSION)_linux_$(GOARCH).zip
+# Native toolchain by default; command-line CC= overrides for local cross
+# builds (e.g. make build GOARCH=arm64 CC=aarch64-linux-gnu-gcc).
+CC ?= gcc
+DEPLOY_DIR ?= ../../plugins/linux/$(GOARCH)
 
-.PHONY: build package test deploy clean
+.PHONY: build package package-one test deploy clean
 
 build:
-	test "$$($(GO) env GOOS)" = "linux"
-	test "$$($(GO) env GOARCH)" = "amd64"
 	mkdir -p "$(dir $(OUT))"
-	CGO_ENABLED=1 $(GO) build -buildvcs=false -trimpath -buildmode=c-shared \
+	CGO_ENABLED=1 GOOS=linux GOARCH=$(GOARCH) CC="$(CC)" $(GO) build \
+		-buildvcs=false -trimpath -buildmode=c-shared \
 		-ldflags "-s -w -X main.pluginVersion=$(VERSION)" -o "$(OUT)" ./src
 	rm -f dist/*.h
 
-package: build
+package:
+	rm -f dist/checksums.txt
+	for arch in $(ARCHS); do \
+		$(MAKE) package-one GOARCH=$$arch || exit 1; \
+	done
+
+package-one: build
 	$(GO) run -buildvcs=false ./.github/scripts/package-release.go \
 			-library "$(OUT)" -entry "$(PLUGIN_ID).so" \
-			-archive "$(ARCHIVE)" -checksum "$(ARCHIVE_CHECKSUM)"
-	cp "$(ARCHIVE_CHECKSUM)" dist/checksums.txt
+			-archive "$(ARCHIVE)" -checksum dist/checksums.txt -append
 
 test:
 	$(GO) vet ./...

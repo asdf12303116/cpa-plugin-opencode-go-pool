@@ -9,8 +9,15 @@ permissions:
   contents: write
 
 jobs:
-  release:
-    runs-on: ubuntu-24.04
+  build:
+    runs-on: ${{ matrix.runs-on }}
+    strategy:
+      matrix:
+        include:
+          - arch: amd64
+            runs-on: ubuntu-24.04
+          - arch: arm64
+            runs-on: ubuntu-24.04-arm
     steps:
       - name: Check out repository
         uses: actions/checkout@v7
@@ -30,32 +37,65 @@ jobs:
             exit 1
           fi
           echo "VERSION=${VERSION}" >> "${GITHUB_ENV}"
-          echo "ARCHIVE=opencode-go-pool_${VERSION}_linux_amd64.zip" >> "${GITHUB_ENV}"
 
       - name: Test
         run: make test
 
-      - name: Build and package Linux amd64 plugin
-        run: make package VERSION="${VERSION}"
+      - name: Build and package Linux ${{ matrix.arch }} plugin
+        run: make package VERSION="${VERSION}" GOARCH="${{ matrix.arch }}"
+
+      - name: Upload installer artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: plugin-${{ matrix.arch }}
+          path: dist/
+          if-no-files-found: error
+
+  release:
+    needs: build
+    runs-on: ubuntu-24.04
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+          fetch-tags: true
+
+      - name: Download installer artifacts
+        uses: actions/download-artifact@v4
+        with:
+          pattern: plugin-*
+          path: artifacts
+          merge-multiple: false
 
       - name: Verify installer artifacts
         run: |
           set -euo pipefail
-          cd dist
+          VERSION="${GITHUB_REF_NAME#v}"
+          cat artifacts/*/checksums.txt > checksums.txt
+          cp artifacts/plugin-amd64/*.zip artifacts/plugin-arm64/*.zip .
           sha256sum --check checksums.txt
-          test "$(unzip -Z1 "${ARCHIVE}")" = "opencode-go-pool.so"
+          for ARCH in amd64 arm64; do
+            ARCHIVE="opencode-go-pool_${VERSION}_linux_${ARCH}.zip"
+            test -f "artifacts/plugin-${ARCH}/${ARCHIVE}"
+            test "$(unzip -Z1 "artifacts/plugin-${ARCH}/${ARCHIVE}")" = "opencode-go-pool.so"
+          done
 
       - name: Publish GitHub release
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
           set -euo pipefail
+          VERSION="${GITHUB_REF_NAME#v}"
+          ASSETS=(
+            "artifacts/plugin-amd64/opencode-go-pool_${VERSION}_linux_amd64.zip"
+            "artifacts/plugin-arm64/opencode-go-pool_${VERSION}_linux_arm64.zip"
+            "checksums.txt"
+          )
           if gh release view "${GITHUB_REF_NAME}" >/dev/null 2>&1; then
-            gh release upload "${GITHUB_REF_NAME}" \
-              "dist/${ARCHIVE}" dist/checksums.txt --clobber
+            gh release upload "${GITHUB_REF_NAME}" "${ASSETS[@]}" --clobber
           else
-            gh release create "${GITHUB_REF_NAME}" \
-              "dist/${ARCHIVE}" dist/checksums.txt \
+            gh release create "${GITHUB_REF_NAME}" "${ASSETS[@]}" \
               --verify-tag \
               --title "${GITHUB_REF_NAME}" \
               --generate-notes
