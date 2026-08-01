@@ -21,7 +21,16 @@ type persistedSettings struct {
 	Accounts map[string]uiAccountSettings `json:"accounts"`
 }
 
+// settingsPath returns the path of the persisted UI settings file. The
+// filename deliberately avoids a .json suffix: CPA's git-backed auth store
+// indexes every *.json file under the auth directory recursively, so a
+// settings.json inside the state directory would surface as a bogus auth file.
 func settingsPath(stateDir string) string {
+	return filepath.Join(stateDir, "settings.data")
+}
+
+// legacySettingsPath is the pre-0.3.3 filename that must be migrated away.
+func legacySettingsPath(stateDir string) string {
 	return filepath.Join(stateDir, "settings.json")
 }
 
@@ -30,6 +39,12 @@ func loadUISettings(stateDir string) map[string]uiAccountSettings {
 		return nil
 	}
 	raw, errRead := os.ReadFile(settingsPath(stateDir))
+	if errRead != nil {
+		// Fall back to the legacy .json filename so settings saved before the
+		// rename are not lost; saveUISettings removes the legacy file once the
+		// new one is written.
+		raw, errRead = os.ReadFile(legacySettingsPath(stateDir))
+	}
 	if errRead != nil {
 		return nil
 	}
@@ -55,5 +70,13 @@ func saveUISettings(stateDir string, accounts map[string]uiAccountSettings) erro
 	if errWrite := os.WriteFile(tmp, raw, 0o600); errWrite != nil {
 		return errWrite
 	}
-	return os.Rename(tmp, settingsPath(stateDir))
+	if errRename := os.Rename(tmp, settingsPath(stateDir)); errRename != nil {
+		return errRename
+	}
+	// Remove the legacy .json file so the git-backed auth store stops
+	// indexing it as a bogus auth file.
+	if errRemove := os.Remove(legacySettingsPath(stateDir)); errRemove != nil && !os.IsNotExist(errRemove) {
+		return errRemove
+	}
+	return nil
 }

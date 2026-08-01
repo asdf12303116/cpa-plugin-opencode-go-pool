@@ -149,7 +149,7 @@ or not persisted), the page falls back to the manual management key field.
 Each account can be configured with its OpenCode workspace ID and dashboard
 `auth` cookie. The cookie is more sensitive than an API key:
 
-- it is saved only in `<auth-dir>/opencode-go-pool-fork/settings.json` with mode `0600`;
+- it is saved only in `<auth-dir>/opencode-go-pool-fork/settings.data` with mode `0600`;
 - it is never returned by the management API or written to logs;
 - it should not be committed to Git or placed directly in `config.yaml`;
 - it can instead be supplied through a `cookie-file` mounted read-only into
