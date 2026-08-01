@@ -1,8 +1,8 @@
-VERSION ?= 0.2.0
+VERSION ?= 0.3.2
 GO ?= go
 GOARCH ?= amd64
 ARCHS ?= $(GOARCH)
-PLUGIN_ID = opencode-go-pool
+PLUGIN_ID = opencode-go-pool-fork
 # Keep the historical amd64 output name so existing manual flows still work.
 LIB_SUFFIX = $(if $(filter arm64,$(GOARCH)),-$(GOARCH),)
 OUT = dist/opencode-go-pool-v$(VERSION)$(LIB_SUFFIX).so

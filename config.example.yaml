@@ -28,7 +28,7 @@ plugins:
   store-sources:
     - https://raw.githubusercontent.com/asdf12303116/cpa-plugin-opencode-go-pool/main/registry.json
   configs:
-    opencode-go-pool:
+    opencode-go-pool-fork:
       enabled: true
       cpa-config-path: config.yaml
       threshold-percent: 97

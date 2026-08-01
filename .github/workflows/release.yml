@@ -76,9 +76,9 @@ jobs:
           cp artifacts/plugin-amd64/*.zip artifacts/plugin-arm64/*.zip .
           sha256sum --check checksums.txt
           for ARCH in amd64 arm64; do
-            ARCHIVE="opencode-go-pool_${VERSION}_linux_${ARCH}.zip"
+            ARCHIVE="opencode-go-pool-fork_${VERSION}_linux_${ARCH}.zip"
             test -f "artifacts/plugin-${ARCH}/${ARCHIVE}"
-            test "$(unzip -Z1 "artifacts/plugin-${ARCH}/${ARCHIVE}")" = "opencode-go-pool.so"
+            test "$(unzip -Z1 "artifacts/plugin-${ARCH}/${ARCHIVE}")" = "opencode-go-pool-fork.so"
           done
 
       - name: Publish GitHub release
@@ -88,8 +88,8 @@ jobs:
           set -euo pipefail
           VERSION="${GITHUB_REF_NAME#v}"
           ASSETS=(
-            "artifacts/plugin-amd64/opencode-go-pool_${VERSION}_linux_amd64.zip"
-            "artifacts/plugin-arm64/opencode-go-pool_${VERSION}_linux_arm64.zip"
+            "artifacts/plugin-amd64/opencode-go-pool-fork_${VERSION}_linux_amd64.zip"
+            "artifacts/plugin-arm64/opencode-go-pool-fork_${VERSION}_linux_arm64.zip"
             "checksums.txt"
           )
           if gh release view "${GITHUB_REF_NAME}" >/dev/null 2>&1; then

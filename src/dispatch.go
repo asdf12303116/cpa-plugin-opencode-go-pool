@@ -67,7 +67,7 @@ func pluginRegistration() registration {
 	return registration{
 		SchemaVersion: pluginabi.SchemaVersion,
 		Metadata: pluginapi.Metadata{
-			Name:             "opencode-go-pool",
+			Name:             "OpenCode Go Pool (Fork)",
 			Version:          pluginVersion,
 			Author:           "asdf12303116",
 			GitHubRepository: "https://github.com/asdf12303116/cpa-plugin-opencode-go-pool",

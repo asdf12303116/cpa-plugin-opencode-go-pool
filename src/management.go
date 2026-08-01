@@ -16,7 +16,7 @@ var (
 )
 
 const (
-	pluginID           = "opencode-go-pool"
+	pluginID           = "opencode-go-pool-fork"
 	managementBasePath = "/plugins/" + pluginID
 )
 

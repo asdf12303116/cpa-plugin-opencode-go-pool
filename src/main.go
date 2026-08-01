@@ -1,4 +1,4 @@
-// Package main implements the opencode-go-pool CLIProxyAPI plugin.
+// Package main implements the opencode-go-pool-fork CLIProxyAPI plugin.
 //
 // It manages a pool of OpenCode Go (opencode.ai Zen Go) subscriptions that are
 // configured in CPA as generic openai-compatibility and claude-api-key

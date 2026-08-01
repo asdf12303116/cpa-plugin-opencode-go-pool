@@ -1,6 +1,6 @@
-# OpenCode Go Pool for CLIProxyAPI
+# OpenCode Go Pool (Fork) for CLIProxyAPI
 
-`opencode-go-pool` is a quota-aware [CLIProxyAPI](https://github.com/router-for-me/CLIProxyAPI)
+`opencode-go-pool-fork` is a quota-aware [CLIProxyAPI](https://github.com/router-for-me/CLIProxyAPI)
 plugin for pooling multiple [OpenCode Go](https://opencode.ai/docs/go/)
 subscriptions across OpenAI-compatible and Anthropic-compatible clients.
 
@@ -56,7 +56,7 @@ plugins:
 ```
 
 Reload or restart CPA, open **CPA Manager Plus → Plugin Store**, refresh the
-store, and install **OpenCode Go Pool**. The installer verifies the release
+store, and install **OpenCode Go Pool (Fork)**. The installer verifies the release
 checksum and writes the versioned library under `plugins/linux/amd64/` or
 `plugins/linux/arm64/` matching the host architecture.
 
@@ -71,18 +71,18 @@ Build the shared library:
 
 ```sh
 make test
-make build VERSION=0.2.0
-make build VERSION=0.2.0 GOARCH=arm64 CC=aarch64-linux-gnu-gcc  # arm64 cross build
-make package VERSION=0.2.0  # produce the CPA plugin-store zip + checksums
-make package VERSION=0.2.0 ARCHS="amd64 arm64"  # produce both architecture zips
+make build VERSION=0.3.2
+make build VERSION=0.3.2 GOARCH=arm64 CC=aarch64-linux-gnu-gcc  # arm64 cross build
+make package VERSION=0.3.2  # produce the CPA plugin-store zip + checksums
+make package VERSION=0.3.2 ARCHS="amd64 arm64"  # produce both architecture zips
 ```
 
-Copy `dist/opencode-go-pool-v0.2.0.so` into CPA's
+Copy `dist/opencode-go-pool-fork-v0.3.2.so` into CPA's
 `plugins/linux/amd64/` directory and mount that directory at
 `/CLIProxyAPI/plugins` in the CPA container (use
-`dist/opencode-go-pool-v0.2.0-arm64.so` and `plugins/linux/arm64/` on arm64).
+`dist/opencode-go-pool-fork-v0.3.2-arm64.so` and `plugins/linux/arm64/` on arm64).
 The plugin ID is derived from the filename by removing the version suffix, so
-the example above registers as `opencode-go-pool`.
+the example above registers as `opencode-go-pool-fork`.
 
 For a local stack with a container named `cli-proxy-api`, this shortcut builds,
 copies, and restarts CPA:
@@ -122,7 +122,7 @@ Default plugin settings are:
 
 The plugin reads CLIProxyAPI's `auth-dir` from the same config file. Host
 cooldown records are read from that directory, and plugin-owned UI settings
-are stored under `<auth-dir>/opencode-go-pool`.
+are stored under `<auth-dir>/opencode-go-pool-fork`.
 
 Account discovery is intentionally OpenCode-specific: the plugin reads the
 `opencode-go` compatibility provider and pairs Claude credentials by matching
@@ -136,7 +136,7 @@ cross-protocol health synchronization still work.
 Open the CPA plugin page at:
 
 ```text
-/v0/resource/plugins/opencode-go-pool/status
+/v0/resource/plugins/opencode-go-pool-fork/status
 ```
 
 When the page is served on the same origin as **CPA Manager Plus** (the
@@ -149,7 +149,7 @@ or not persisted), the page falls back to the manual management key field.
 Each account can be configured with its OpenCode workspace ID and dashboard
 `auth` cookie. The cookie is more sensitive than an API key:
 
-- it is saved only in `<auth-dir>/opencode-go-pool/settings.json` with mode `0600`;
+- it is saved only in `<auth-dir>/opencode-go-pool-fork/settings.json` with mode `0600`;
 - it is never returned by the management API or written to logs;
 - it should not be committed to Git or placed directly in `config.yaml`;
 - it can instead be supplied through a `cookie-file` mounted read-only into
@@ -164,10 +164,10 @@ All management endpoints require the CPA management key.
 
 | Route | Purpose |
 | --- | --- |
-| `GET /v0/management/plugins/opencode-go-pool/status` | Return pool state |
-| `POST /v0/management/plugins/opencode-go-pool/refresh` | Refresh dashboard usage |
-| `POST /v0/management/plugins/opencode-go-pool/unblock` | Clear one account's plugin-level blocks |
-| `POST /v0/management/plugins/opencode-go-pool/account-config` | Save or clear dashboard settings |
+| `GET /v0/management/plugins/opencode-go-pool-fork/status` | Return pool state |
+| `POST /v0/management/plugins/opencode-go-pool-fork/refresh` | Refresh dashboard usage |
+| `POST /v0/management/plugins/opencode-go-pool-fork/unblock` | Clear one account's plugin-level blocks |
+| `POST /v0/management/plugins/opencode-go-pool-fork/account-config` | Save or clear dashboard settings |
 
 Example unblock payload:
 
@@ -212,7 +212,7 @@ make clean
 ```
 
 `make test` runs `go vet ./...` and `go test ./...`. `make package` creates
-`opencode-go-pool_<version>_linux_<arch>.zip` (amd64 by default; pass
+`opencode-go-pool-fork_<version>_linux_<arch>.zip` (amd64 by default; pass
 `ARCHS="amd64 arm64"` for both) and `checksums.txt` in `dist/` using the exact
 CPA plugin-store layout. CI additionally checks formatting and builds the C
 ABI shared library for amd64 and arm64. Pushing a `v<version>` tag publishes

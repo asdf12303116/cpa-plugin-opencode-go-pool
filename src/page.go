@@ -8,7 +8,7 @@ const statusPageHTML = `<!doctype html>
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>OpenCode Go Pool</title>
+<title>OpenCode Go Pool (Fork)</title>
 <style>
 :root { color-scheme: light dark; font-family: ui-sans-serif, system-ui, sans-serif; }
 body { margin: 0; padding: 24px; background: Canvas; color: CanvasText; }
@@ -29,7 +29,7 @@ button:hover { background: color-mix(in srgb, CanvasText 8%, transparent); }
 </style>
 </head>
 <body>
-<h1>OpenCode Go Pool</h1>
+<h1>OpenCode Go Pool (Fork)</h1>
 <div class="card">
   <label>CPA Management Key
     <input type="password" id="key" placeholder="management key" autocomplete="off">
@@ -41,7 +41,7 @@ button:hover { background: color-mix(in srgb, CanvasText 8%, transparent); }
 </div>
 <div class="card"><div id="content" class="muted">Enter the management key and press Load, or wait for it to load from CPA Manager Plus.</div></div>
 <script>
-const BASE = '/v0/management/plugins/opencode-go-pool';
+const BASE = '/v0/management/plugins/opencode-go-pool-fork';
 const keyInput = document.getElementById('key');
 try { keyInput.value = sessionStorage.getItem('ocgp-key') || ''; } catch (_) {}
 function headers() {

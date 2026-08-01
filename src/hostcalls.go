@@ -66,7 +66,7 @@ func hostCall(method string, payload any) (json.RawMessage, error) {
 func hostLog(level, message string, fields map[string]any) {
 	payload := map[string]any{
 		"level":   level,
-		"message": "opencode-go-pool: " + message,
+		"message": "opencode-go-pool-fork: " + message,
 	}
 	if len(fields) > 0 {
 		payload["fields"] = fields
