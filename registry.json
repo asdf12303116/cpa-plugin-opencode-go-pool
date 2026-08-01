@@ -6,7 +6,7 @@
       "name": "OpenCode Go Pool",
       "description": "Quota-aware cross-protocol account pooling and failover for OpenCode Go subscriptions.",
       "author": "asdf12303116",
-      "version": "0.3.0",
+      "version": "0.3.1",
       "repository": "https://github.com/asdf12303116/cpa-plugin-opencode-go-pool",
       "homepage": "https://github.com/asdf12303116/cpa-plugin-opencode-go-pool",
       "license": "MIT",

@@ -69,8 +69,8 @@ func pluginRegistration() registration {
 		Metadata: pluginapi.Metadata{
 			Name:             "opencode-go-pool",
 			Version:          pluginVersion,
-			Author:           "hrz6976",
-			GitHubRepository: "https://github.com/hrz6976/cpa-plugin-opencode-go-pool",
+			Author:           "asdf12303116",
+			GitHubRepository: "https://github.com/asdf12303116/cpa-plugin-opencode-go-pool",
 			ConfigFields: []pluginapi.ConfigField{
 				{
 					Name:        "cpa-config-path",

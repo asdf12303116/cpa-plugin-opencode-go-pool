@@ -57,17 +57,20 @@ function deobfuscatePayload(payload) {
   const key = 'cli-proxy-api-webui::secure-storage|' + location.host + '|' + navigator.userAgent;
   const keyBytes = new TextEncoder().encode(key);
   const bytes = new Uint8Array(binary.length);
-  for (let i = 0; i < binary.length; i++) bytes[i] = binary.charCodeAt(i) ^ keyBytes.charCodeAt(i % keyBytes.length);
+  for (let i = 0; i < binary.length; i++) bytes[i] = binary.charCodeAt(i) ^ keyBytes[i % keyBytes.length];
   return new TextDecoder().decode(bytes);
 }
 function readStoredKey() {
-  let stored = null;
-  try { stored = sessionStorage.getItem('ocgp-key'); } catch (_) {}
-  if (stored) return { key: stored, source: 'session' };
   try {
     const raw = localStorage.getItem('cli-proxy-auth');
     if (raw) {
-      const state = JSON.parse(deobfuscatePayload(raw));
+      // CPA Manager Plus persists the auth store via zustand persist:
+      // {"state": {...}, "version": 0} wrapped, then obfuscated.
+      const payload = JSON.parse(deobfuscatePayload(raw));
+      const state =
+        payload && typeof payload.state === 'object' && payload.state !== null
+          ? payload.state
+          : payload;
       if (state && typeof state.managementKey === 'string' && state.managementKey) {
         return { key: state.managementKey, source: 'cpamp' };
       }

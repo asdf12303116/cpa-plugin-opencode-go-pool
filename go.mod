@@ -1,4 +1,4 @@
-module github.com/hrz6976/cpa-plugin-opencode-go-pool
+module github.com/asdf12303116/cpa-plugin-opencode-go-pool
 
 go 1.26.0
 
